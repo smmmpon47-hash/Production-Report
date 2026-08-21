@@ -1,1 +1,180 @@
-# Production-Report
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายงานยอดการผลิตประจำวัน</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #121212; color: #E0E0E0; font-family: 'Sukhumvit Set', sans-serif; }
+    .input-dark { background-color: #1E1E1E; border: 1px solid #333; color: #FFF; }
+    .input-dark:focus { border-color: #00E676; outline: none; }
+  </style>
+</head>
+<body class="p-4 max-w-md mx-auto">
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 shadow-2xl">
+    <h2 class="text-xl font-bold text-green-400 text-center mb-4">📝 ฟอร์มรายงานยอดการผลิต</h2>
+
+    <!-- Alert Banner -->
+    <div id="alertBanner" class="hidden mb-4 p-3 rounded-lg text-xs bg-yellow-900/40 border border-yellow-600 text-yellow-300"></div>
+
+    <form id="reportForm" onsubmit="handleSubmit(event)">
+      
+      <!-- 1. LINE Dropdown -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-400 mb-1">LINE การผลิต *</label>
+        <select id="lineCode" class="w-full p-3 rounded-lg input-dark font-bold text-green-400" onchange="fetchLineData()" required>
+          <option value="" disabled selected>-- เลือก LINE --</option>
+          <option value="B">LINE B</option>
+          <option value="C">LINE C</option>
+          <option value="D">LINE D</option>
+          <option value="E">LINE E</option>
+          <option value="F">LINE F</option>
+          <option value="G">LINE G</option>
+        </select>
+      </div>
+
+      <!-- 2. LOT & Scan QR -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-400 mb-1">เลข LOT</label>
+        <div class="flex gap-2">
+          <input type="text" id="lotNumber" class="w-full p-3 rounded-lg input-dark uppercase" placeholder="พิมพ์ หรือ สแกน LOT" onblur="fetchLotInfo()">
+          <button type="button" onclick="scanBarcode()" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 px-4 rounded-lg text-xl">📷</button>
+        </div>
+      </div>
+
+      <!-- 3. ข้อมูลป้ายหลังยิง -->
+      <div id="lotInfoBox" class="hidden mb-4 p-3 bg-gray-800/60 border border-gray-700 rounded-lg text-xs space-y-1">
+        <div class="text-gray-400">รุ่น: <span id="infoModel" class="text-white font-bold">-</span></div>
+        <div class="text-gray-400">เป้า PO: <span id="infoPoTarget" class="text-green-400 font-bold">-</span> | ผลิตสะสม: <span id="infoActual" class="text-blue-400 font-bold">-</span></div>
+      </div>
+
+      <!-- 4. เป้าประจำวัน (Target) -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-400 mb-1">โจทย์ (เป้าประจำวัน) *</label>
+        <input type="number" id="target" class="w-full p-3 rounded-lg input-dark font-bold text-xl text-yellow-400" placeholder="0" required>
+      </div>
+
+      <!-- 5. ยอดทำได้จริง (Actual) -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-400 mb-1">ยอดทำได้จริง (ถ้ามี)</label>
+        <input type="number" id="actual" class="w-full p-3 rounded-lg input-dark font-bold text-xl text-green-400" placeholder="0">
+      </div>
+
+      <!-- 6. วันที่ (Auto Fill) -->
+      <div class="mb-6">
+        <label class="block text-xs font-semibold text-gray-400 mb-1">วันที่รายงาน (อัตโนมัติ)</label>
+        <input type="text" id="reportDate" class="w-full p-3 rounded-lg input-dark text-gray-500 bg-gray-800" readonly>
+      </div>
+
+      <!-- ปุ่มกด CANCEL / SAVE -->
+      <div class="grid grid-cols-2 gap-3">
+        <button type="button" onclick="liff.closeWindow()" class="w-full py-3 bg-gray-800 text-gray-300 font-bold rounded-lg border border-gray-700">CANCEL</button>
+        <button type="submit" id="btnSave" class="w-full py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg">SAVE</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzDaRH4kbo7lElXKBCQUbUn7uvYISayMM51fBT3KTY1q_MHqRis7DEDYRfqoTK7NwQg/exec"; // 🔴 ใส่ URL Google Apps Script ที่นี่
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+      try {
+        await liff.init({ liffId: "YOUR_LIFF_ID" }); // 🔴 ใส่ LIFF ID
+      } catch (err) { console.error("LIFF Init Error", err); }
+    });
+
+    // สแกน Barcode / QR Code ผ่าน LIFF
+    async function scanBarcode() {
+      if (!liff.isInClient()) {
+        alert("กรุณาเปิดบนแอป LINE เพื่อใช้งานระบบสแกนบาร์โค้ด");
+        return;
+      }
+      try {
+        const result = await liff.scanCodeV2();
+        if (result.value) {
+          document.getElementById('lotNumber').value = result.value.toUpperCase();
+          fetchLotInfo();
+        }
+      } catch (err) { alert("สแกนไม่สำเร็จ: " + err.message); }
+    }
+
+    // ดึงข้อมูล Line เมื่อเลือก Dropdown
+    async function fetchLineData() {
+      const line = document.getElementById('lineCode').value;
+      if (!line) return;
+
+      const res = await fetch(`${GAS_WEB_APP_URL}?action=getTodayLine&line=${line}`);
+      const data = await res.json();
+
+      const alertBanner = document.getElementById('alertBanner');
+      if (data.reported) {
+        alertBanner.classList.remove('hidden');
+        alertBanner.innerText = `⚠️ Line ${line} รายงานยอดแล้วเมื่อ ${data.lastUpdate} โดย ${data.updatedBy || 'พนักงาน'}`;
+        document.getElementById('btnSave').innerText = "UPDATE";
+      } else {
+        alertBanner.classList.add('hidden');
+        document.getElementById('btnSave').innerText = "SAVE";
+      }
+
+      if (data.target) document.getElementById('target').value = data.target;
+      if (data.actual) document.getElementById('actual').value = data.actual;
+      if (data.lotNumber) {
+        document.getElementById('lotNumber').value = data.lotNumber;
+        fetchLotInfo();
+      }
+    }
+
+    // ดึงข้อมูลป้ายหลังยิง LOT
+    async function fetchLotInfo() {
+      const lot = document.getElementById('lotNumber').value.trim();
+      if (!lot) return;
+
+      const res = await fetch(`${GAS_WEB_APP_URL}?searchLot=${lot}`);
+      const data = await res.json();
+
+      const box = document.getElementById('lotInfoBox');
+      if (data.error) {
+        box.classList.add('hidden');
+      } else {
+        box.classList.remove('hidden');
+        document.getElementById('infoModel').innerText = data.model;
+        document.getElementById('infoPoTarget').innerText = Number(data.po_target).toLocaleString();
+        document.getElementById('infoActual').innerText = Number(data.cumulative_actual).toLocaleString();
+      }
+    }
+
+    // บันทึกข้อมูลส่งไปยัง GAS
+    async function handleSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSave');
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึก...";
+
+      let profileName = "Unknown";
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        profileName = profile.displayName;
+      }
+
+      const payload = {
+        line: document.getElementById('lineCode').value,
+        lotNumber: document.getElementById('lotNumber').value,
+        target: Number(document.getElementById('target').value),
+        actual: Number(document.getElementById('actual').value) || 0,
+        updatedBy: profileName
+      };
+
+      await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+      liff.closeWindow();
+    }
+  </script>
+</body>
+</html>
