@@ -6,30 +6,29 @@
   <title>ตั้งเป้าการผลิตประจำวัน</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #F8FAFC; color: #0F172A; }
+    body { font-family: 'Prompt', sans-serif; background-color: #F1F5F9; color: #0F172A; }
   </style>
 </head>
 <body class="p-4 max-w-md mx-auto min-h-screen flex flex-col justify-center">
 
-  <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-5">
+  <div class="bg-white border border-slate-200 rounded-3xl p-5 shadow-xl space-y-4 w-full box-border">
     
     <!-- Title Header -->
-    <div class="text-center pb-2 border-b border-slate-100">
-      <h1 class="text-2xl font-bold text-slate-800 tracking-wide">📝 ตั้งเป้าการผลิตประจำวัน</h1>
-      <p class="text-sm text-slate-500 mt-1">กรอกข้อมูลเป้าหมายประจำไลน์การผลิต</p>
+    <div class="text-center border-b border-slate-100 pb-2">
+      <h1 class="text-2xl font-bold text-slate-800">เป้าการผลิตประจำวัน</h1>
     </div>
 
-    <div id="alertBanner" class="hidden p-3.5 rounded-2xl text-sm bg-amber-50 border border-amber-200 text-amber-800 font-medium leading-relaxed"></div>
+    <div id="alertBanner" class="hidden p-3 rounded-2xl text-xs bg-amber-50 border border-amber-200 text-amber-800 font-medium"></div>
 
     <form id="reportForm" onsubmit="handleSubmit(event)" class="space-y-4">
       
-      <!-- LINE Select -->
+      <!-- 1. LINE Select -->
       <div>
-        <label class="block text-sm font-bold text-slate-700 mb-1.5">LINE การผลิต <span class="text-rose-500">*</span></label>
+        <label class="block text-base font-bold text-slate-700 mb-1">LINE</label>
         <div class="relative">
-          <select id="lineCode" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 text-base appearance-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none" onchange="fetchLineData()" required>
+          <select id="lineCode" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 text-lg appearance-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" onchange="fetchLineData()" required>
             <option value="" disabled selected>-- เลือก LINE --</option>
             <option value="B">LINE B</option>
             <option value="C">LINE C</option>
@@ -38,84 +37,80 @@
             <option value="F">LINE F</option>
             <option value="G">LINE G</option>
           </select>
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-sm">▼</div>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 text-base">▼</div>
         </div>
       </div>
 
-      <!-- SECTION: LOT 1 -->
-      <div class="space-y-2">
-        <label class="block text-sm font-bold text-slate-700">เลข LOT 1 <span class="text-rose-500">*</span></label>
-        <div class="flex gap-2">
-          <input type="text" id="lotNumber" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 uppercase text-base focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none" placeholder="พิมพ์ หรือ สแกน LOT 1" onblur="fetchLotInfo('1')" required>
-          <button type="button" onclick="scanBarcode('lotNumber')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 px-4 rounded-2xl flex items-center justify-center transition-all active:scale-95 text-xl">📷</button>
+      <!-- 2. LOT 1 Section -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center text-sm font-bold text-slate-700">
+          <span>เลข LOT</span>
+          <span class="w-14 text-center">ชม.</span>
         </div>
-
-        <div id="lotInfoBox1" class="hidden p-3 bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-1 text-xs">
-          <div class="flex justify-between items-center">
-            <span class="text-slate-600 font-medium">รุ่น (Model):</span>
-            <span id="infoModel1" class="font-bold text-emerald-900 text-sm">-</span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-slate-600 font-medium">เป้า PO:</span>
-            <span id="infoPoTarget1" class="font-bold text-emerald-700 text-sm">-</span>
-          </div>
+        <div class="flex gap-2 items-center">
+          <input type="text" id="lotNumber" class="flex-1 min-w-0 p-3 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 text-base uppercase focus:bg-white focus:border-blue-500 outline-none" placeholder="พิมพ์/สแกน" onblur="fetchLotInfo('1')" required>
+          
+          <!-- ปุ่ม QR แบบไอคอนภาพ -->
+          <button type="button" onclick="scanBarcode('lotNumber')" class="w-12 h-12 bg-[#F2F0E9] hover:bg-orange-100 border-2 border-[#1B2A4A] rounded-2xl transition-all active:scale-95 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
+            <svg class="w-full h-full text-[#0B1E38]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#D95D00" stroke-width="2.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              <path d="M14 14h3v3h-3z" fill="currentColor"/>
+              <path d="M18 18h3v3h-3z" fill="currentColor"/>
+              <path d="M18 14h3v3" />
+            </svg>
+          </button>
+          
+          <input type="number" id="workingHours" step="0.5" min="1" max="24" class="w-14 p-3 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 text-base text-center focus:bg-white focus:border-blue-500 outline-none shrink-0" value="8" required>
         </div>
-
-        <!-- ปุ่มกดเปิด LOT 2 -->
-        <button type="button" id="btnToggleLot2" onclick="toggleLot2()" class="w-full py-2.5 px-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold rounded-2xl transition-all active:scale-98 flex items-center justify-center space-x-2 text-sm mt-1">
-          <span id="toggleIcon">➕</span>
-          <span id="toggleText">เพิ่มการผลิต LOT 2 (ถ้ามี)</span>
-        </button>
-      </div>
-
-      <!-- SECTION: LOT 2 (ซ่อนเริ่มต้น) -->
-      <div id="lot2Section" class="hidden p-4 bg-slate-50 border-2 border-dashed border-blue-300 rounded-2xl space-y-3 mt-2">
-        <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-          <span class="text-sm font-bold text-blue-800 flex items-center gap-1">📦 ข้อมูล LOT 2</span>
-          <button type="button" onclick="toggleLot2()" class="text-xs font-bold text-rose-500 hover:text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg">✕ ลบ LOT 2</button>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">เลข LOT 2</label>
-          <div class="flex gap-2">
-            <input type="text" id="lotNumber2" class="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 uppercase text-sm focus:border-blue-500 transition-all outline-none" placeholder="พิมพ์ หรือ สแกน LOT 2" onblur="fetchLotInfo('2')">
-            <button type="button" onclick="scanBarcode('lotNumber2')" class="bg-blue-100 border border-blue-200 text-blue-700 px-3.5 rounded-xl flex items-center justify-center text-lg">📷</button>
-          </div>
-        </div>
-
-        <div id="lotInfoBox2" class="hidden p-2.5 bg-white border border-blue-200 rounded-xl text-xs flex justify-between items-center">
-          <span class="text-slate-500 font-medium">รุ่น (Model 2):</span>
-          <span id="infoModel2" class="font-bold text-blue-900 text-sm">-</span>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">ชั่วโมงทำงาน LOT 2 (ชม.)</label>
-          <input type="number" id="workingHours2" step="0.5" min="0" max="24" class="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 text-center text-base" value="0">
+        
+        <div id="lotInfo1" class="text-xs font-semibold text-blue-600 px-1 pt-0.5">
+          โมเดล: <span id="infoModel1" class="text-slate-800 font-normal">-</span>
         </div>
       </div>
 
-      <!-- TARGET & HOURS -->
-      <div class="grid grid-cols-5 gap-2.5 pt-1">
-        <div class="col-span-3">
-          <label class="block text-xs font-bold text-slate-700 mb-1">TG (เป้ารวมประจำวัน) <span class="text-rose-500">*</span></label>
-          <input type="number" id="target" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl font-black text-2xl text-emerald-600 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none" placeholder="0" required>
+      <!-- 3. LOT 2 Section -->
+      <div class="space-y-1 pt-1">
+        <div class="flex justify-between items-center text-sm font-bold text-slate-700">
+          <span>เลข LOT 2 (ถ้ามี)</span>
+          <span class="w-14 text-center">ชม.</span>
         </div>
-        <div class="col-span-2">
-          <label class="block text-xs font-bold text-slate-700 mb-1">เวลา LOT 1 (ชม.) <span class="text-rose-500">*</span></label>
-          <input type="number" id="workingHours" step="0.5" min="1" max="24" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-xl text-slate-800 text-center focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none" value="8" required>
+        <div class="flex gap-2 items-center">
+          <input type="text" id="lotNumber2" class="flex-1 min-w-0 p-3 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 text-base uppercase focus:bg-white focus:border-blue-500 outline-none" placeholder="พิมพ์/สแกน" onblur="fetchLotInfo('2')">
+          
+          <!-- ปุ่ม QR แบบไอคอนภาพ -->
+          <button type="button" onclick="scanBarcode('lotNumber2')" class="w-12 h-12 bg-[#F2F0E9] hover:bg-orange-100 border-2 border-[#1B2A4A] rounded-2xl transition-all active:scale-95 flex items-center justify-center shrink-0 p-1.5 shadow-sm">
+            <svg class="w-full h-full text-[#0B1E38]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#D95D00" stroke-width="2.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              <path d="M14 14h3v3h-3z" fill="currentColor"/>
+              <path d="M18 18h3v3h-3z" fill="currentColor"/>
+              <path d="M18 14h3v3" />
+            </svg>
+          </button>
+          
+          <input type="number" id="workingHours2" step="0.5" min="0" max="24" class="w-14 p-3 bg-slate-50 border border-slate-300 rounded-2xl font-bold text-slate-800 text-base text-center focus:bg-white focus:border-blue-500 outline-none shrink-0" value="0">
+        </div>
+        
+        <div id="lotInfo2" class="text-xs font-semibold text-blue-600 px-1 pt-0.5">
+          โมเดล: <span id="infoModel2" class="text-slate-800 font-normal">-</span>
         </div>
       </div>
 
-      <!-- DATE -->
-      <div>
-        <label class="block text-xs font-semibold text-slate-400 mb-1">วันที่ (อัตโนมัติ)</label>
-        <input type="text" id="reportDate" class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 cursor-not-allowed" readonly>
+      <!-- 4. TG Section -->
+      <div class="pt-1">
+        <label class="block text-lg font-bold text-slate-800 mb-1">TG</label>
+        <input type="number" id="target" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-2xl font-black text-2xl text-emerald-600 focus:bg-white focus:border-emerald-500 outline-none" placeholder="กรอกเป้ารวม" required>
       </div>
 
-      <!-- ACTION BUTTONS -->
-      <div class="grid grid-cols-2 gap-3 pt-3">
-        <button type="button" onclick="liff.closeWindow()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-all active:scale-95 text-base">CANCEL</button>
-        <button type="submit" id="btnSave" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 text-base">SAVE</button>
+      <input type="hidden" id="reportDate">
+
+      <!-- 5. Action Buttons -->
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button type="button" onclick="liff.closeWindow()" class="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-lg transition-all active:scale-95">CANCEL</button>
+        <button type="submit" id="btnSave" class="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl text-lg shadow-md transition-all active:scale-95">SAVE</button>
       </div>
     </form>
   </div>
@@ -123,37 +118,11 @@
   <script>
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxUK2_MCCjW8TrCTjNHJj3AxvJQ2-w1tjHX5Cw6guNxallTCyvUKWqTB2dPtvzZtYbD/exec"; 
     const LIFF_ID = "2011196323-6e8Sc2U8";                 
-    let hasLot2 = false;
 
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
       try { await liff.init({ liffId: LIFF_ID }); } catch (err) { console.error("LIFF Init Error", err); }
     });
-
-    function toggleLot2() {
-      hasLot2 = !hasLot2;
-      const section = document.getElementById('lot2Section');
-      const btn = document.getElementById('btnToggleLot2');
-      const icon = document.getElementById('toggleIcon');
-      const text = document.getElementById('toggleText');
-
-      if (hasLot2) {
-        section.classList.remove('hidden');
-        btn.classList.replace('bg-blue-50', 'bg-slate-100');
-        btn.classList.replace('text-blue-700', 'text-slate-600');
-        icon.innerText = "➖";
-        text.innerText = "ซ่อนข้อมูล LOT 2";
-      } else {
-        section.classList.add('hidden');
-        btn.classList.replace('bg-slate-100', 'bg-blue-50');
-        btn.classList.replace('text-slate-600', 'text-blue-700');
-        icon.innerText = "➕";
-        text.innerText = "เพิ่มการผลิต LOT 2 (ถ้ามี)";
-        document.getElementById('lotNumber2').value = '';
-        document.getElementById('workingHours2').value = '0';
-        document.getElementById('lotInfoBox2').classList.add('hidden');
-      }
-    }
 
     async function scanBarcode(targetId) {
       if (!liff.isInClient()) {
@@ -193,7 +162,6 @@
         fetchLotInfo('1');
       }
       if (data.lotNumber2) {
-        if (!hasLot2) toggleLot2();
         document.getElementById('lotNumber2').value = data.lotNumber2;
         document.getElementById('workingHours2').value = data.workingHours2 || 0;
         fetchLotInfo('2');
@@ -208,17 +176,11 @@
       const res = await fetch(`${GAS_WEB_APP_URL}?searchLot=${lot}`);
       const data = await res.json();
 
-      const box = document.getElementById(type === '1' ? 'lotInfoBox1' : 'lotInfoBox2');
+      const modelSpan = document.getElementById(type === '1' ? 'infoModel1' : 'infoModel2');
       if (data.error) {
-        box.classList.add('hidden');
+        modelSpan.innerText = 'ไม่พบข้อมูล';
       } else {
-        box.classList.remove('hidden');
-        if (type === '1') {
-          document.getElementById('infoModel1').innerText = data.model;
-          document.getElementById('infoPoTarget1').innerText = Number(data.po_target).toLocaleString();
-        } else {
-          document.getElementById('infoModel2').innerText = data.model;
-        }
+        modelSpan.innerText = data.model;
       }
     }
 
@@ -256,10 +218,10 @@
           btn.innerText = "SAVE";
           return;
         }
-        alert("ตั้งเป้าหมายสำเร็จ!");
+        alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
         liff.closeWindow();
       } catch (err) {
-        alert("ส่งไม่สำเร็จ กรุณาลองใหม่: " + err.message);
+        alert("ส่งไม่สำเร็จ: " + err.message);
         btn.disabled = false;
         btn.innerText = "SAVE";
       }
