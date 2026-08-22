@@ -38,37 +38,64 @@
         </div>
       </div>
 
+      <!-- LOT 1 -->
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">เลข LOT</label>
+        <div class="flex items-center justify-between mb-1">
+          <label class="block text-xs font-semibold text-slate-600">เลข LOT 1 <span class="text-rose-500">*</span></label>
+          <button type="button" onclick="toggleLot2()" id="btnToggleLot2" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">+ เพิ่ม LOT 2</button>
+        </div>
         <div class="flex gap-2">
-          <input type="text" id="lotNumber" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 uppercase focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none text-sm" placeholder="พิมพ์ หรือ สแกน LOT" onblur="fetchLotInfo()">
-          <button type="button" onclick="scanBarcode()" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 px-4 rounded-xl flex items-center justify-center transition-all active:scale-95">📷</button>
+          <input type="text" id="lotNumber" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 uppercase focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none text-sm" placeholder="พิมพ์ หรือ สแกน LOT 1" onblur="fetchLotInfo('1')" required>
+          <button type="button" onclick="scanBarcode('lotNumber')" class="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 px-4 rounded-xl flex items-center justify-center transition-all active:scale-95">📷</button>
         </div>
       </div>
 
-      <div id="lotInfoBox" class="hidden p-3 bg-slate-50 border border-emerald-200 rounded-2xl space-y-1.5 text-xs">
+      <div id="lotInfoBox1" class="hidden p-3 bg-slate-50 border border-emerald-200 rounded-2xl space-y-1.5 text-xs">
         <div class="flex justify-between items-center border-b border-slate-200 pb-1">
-          <span class="text-slate-500">รุ่น (Model)</span>
-          <span id="infoModel" class="font-bold text-slate-800 text-xs">-</span>
+          <span class="text-slate-500">รุ่น (Model LOT 1)</span>
+          <span id="infoModel1" class="font-bold text-slate-800 text-xs">-</span>
         </div>
         <div class="flex justify-between items-center">
           <span class="text-slate-500">เป้า PO</span>
-          <span id="infoPoTarget" class="font-semibold text-emerald-600">-</span>
+          <span id="infoPoTarget1" class="font-semibold text-emerald-600">-</span>
         </div>
+      </div>
+
+      <!-- Section LOT 2 (ซ่อนเป็น Default) -->
+      <div id="lot2Section" class="hidden p-3 bg-amber-50/50 border border-amber-200 rounded-2xl space-y-3 mt-2">
         <div class="flex justify-between items-center">
-          <span class="text-slate-500">ผลิตสะสม</span>
-          <span id="infoActual" class="font-semibold text-blue-600">-</span>
+          <span class="text-xs font-bold text-amber-800">📦 ข้อมูล LOT 2 (เพิ่มเติม)</span>
+          <button type="button" onclick="toggleLot2()" class="text-xs text-rose-500 hover:underline">ยกเลิก</button>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">เลข LOT 2</label>
+          <div class="flex gap-2">
+            <input type="text" id="lotNumber2" class="w-full p-3 bg-white border border-slate-200 rounded-xl font-medium text-slate-800 uppercase focus:border-emerald-500 transition-all outline-none text-sm" placeholder="พิมพ์ หรือ สแกน LOT 2" onblur="fetchLotInfo('2')">
+            <button type="button" onclick="scanBarcode('lotNumber2')" class="bg-amber-100 border border-amber-200 text-amber-700 px-4 rounded-xl flex items-center justify-center">📷</button>
+          </div>
+        </div>
+
+        <div id="lotInfoBox2" class="hidden p-2.5 bg-white border border-amber-200 rounded-xl space-y-1 text-xs">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500">รุ่น (Model LOT 2)</span>
+            <span id="infoModel2" class="font-bold text-slate-800 text-xs">-</span>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">เวลาผลิต LOT 2 (ชม.)</label>
+          <input type="number" id="workingHours2" step="0.5" min="0" max="24" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 text-center text-sm" value="0">
         </div>
       </div>
 
       <div class="grid grid-cols-5 gap-2">
         <div class="col-span-3">
-          <label class="block text-xs font-semibold text-slate-600 mb-1">TG (เป้าประจำวัน) <span class="text-rose-500">*</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">TG (เป้ารวมประจำวัน) <span class="text-rose-500">*</span></label>
           <input type="number" id="target" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xl text-emerald-600 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none text-sm" placeholder="เป้ารวม" required>
         </div>
         <div class="col-span-2">
-          <label class="block text-xs font-semibold text-slate-600 mb-1">เวลา (ชม.) <span class="text-rose-500">*</span></label>
-          <input type="number" id="workingHours" step="0.5" min="1" max="24" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xl text-slate-700 text-center focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none" value="8" required>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">เวลา LOT 1 (ชม.) <span class="text-rose-500">*</span></label>
+          <input type="number" id="workingHours" step="0.5" min="1" max="24" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-bold text-xl text-slate-700 text-center focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all outline-none text-sm" value="8" required>
         </div>
       </div>
 
@@ -87,13 +114,30 @@
   <script>
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxUK2_MCCjW8TrCTjNHJj3AxvJQ2-w1tjHX5Cw6guNxallTCyvUKWqTB2dPtvzZtYbD/exec"; 
     const LIFF_ID = "2011196323-6e8Sc2U8";                 
+    let hasLot2 = false;
 
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
       try { await liff.init({ liffId: LIFF_ID }); } catch (err) { console.error("LIFF Init Error", err); }
     });
 
-    async function scanBarcode() {
+    function toggleLot2() {
+      hasLot2 = !hasLot2;
+      const section = document.getElementById('lot2Section');
+      const btn = document.getElementById('btnToggleLot2');
+      if (hasLot2) {
+        section.classList.remove('hidden');
+        btn.innerText = "- ซ่อน LOT 2";
+      } else {
+        section.classList.add('hidden');
+        btn.innerText = "+ เพิ่ม LOT 2";
+        document.getElementById('lotNumber2').value = '';
+        document.getElementById('workingHours2').value = '0';
+        document.getElementById('lotInfoBox2').classList.add('hidden');
+      }
+    }
+
+    async function scanBarcode(targetId) {
       if (!liff.isInClient()) {
         alert("กรุณาเปิดบนแอป LINE เพื่อใช้งานระบบสแกน");
         return;
@@ -101,8 +145,8 @@
       try {
         const result = await liff.scanCodeV2();
         if (result.value) {
-          document.getElementById('lotNumber').value = result.value.toUpperCase();
-          fetchLotInfo();
+          document.getElementById(targetId).value = result.value.toUpperCase();
+          fetchLotInfo(targetId === 'lotNumber' ? '1' : '2');
         }
       } catch (err) { alert("สแกนไม่สำเร็จ: " + err.message); }
     }
@@ -128,25 +172,35 @@
       if (data.otHours) document.getElementById('workingHours').value = data.otHours;
       if (data.lotNumber) {
         document.getElementById('lotNumber').value = data.lotNumber;
-        fetchLotInfo();
+        fetchLotInfo('1');
+      }
+      if (data.lotNumber2) {
+        if (!hasLot2) toggleLot2();
+        document.getElementById('lotNumber2').value = data.lotNumber2;
+        document.getElementById('workingHours2').value = data.workingHours2 || 0;
+        fetchLotInfo('2');
       }
     }
 
-    async function fetchLotInfo() {
-      const lot = document.getElementById('lotNumber').value.trim();
+    async function fetchLotInfo(type) {
+      const fieldId = type === '1' ? 'lotNumber' : 'lotNumber2';
+      const lot = document.getElementById(fieldId).value.trim();
       if (!lot) return;
 
       const res = await fetch(`${GAS_WEB_APP_URL}?searchLot=${lot}`);
       const data = await res.json();
 
-      const box = document.getElementById('lotInfoBox');
+      const box = document.getElementById(type === '1' ? 'lotInfoBox1' : 'lotInfoBox2');
       if (data.error) {
         box.classList.add('hidden');
       } else {
         box.classList.remove('hidden');
-        document.getElementById('infoModel').innerText = data.model;
-        document.getElementById('infoPoTarget').innerText = Number(data.po_target).toLocaleString();
-        document.getElementById('infoActual').innerText = Number(data.cumulative_actual).toLocaleString();
+        if (type === '1') {
+          document.getElementById('infoModel1').innerText = data.model;
+          document.getElementById('infoPoTarget1').innerText = Number(data.po_target).toLocaleString();
+        } else {
+          document.getElementById('infoModel2').innerText = data.model;
+        }
       }
     }
 
@@ -162,12 +216,13 @@
         profileName = profile.displayName;
       }
 
-      // 🛑 ตัด actual: 0 ออกเรียบร้อยเพื่อไม่ให้ไปทับค่า Target
       const payload = {
         line: document.getElementById('lineCode').value,
         lotNumber: document.getElementById('lotNumber').value,
         target: Number(document.getElementById('target').value),
         workingHours: Number(document.getElementById('workingHours').value),
+        lotNumber2: hasLot2 ? document.getElementById('lotNumber2').value : '',
+        workingHours2: hasLot2 ? Number(document.getElementById('workingHours2').value) : 0,
         updatedBy: profileName
       };
 
