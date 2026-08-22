@@ -61,7 +61,7 @@
           </div>
         </div>
 
-        <!-- ปุ่มกดเปิด LOT 2 (ขนาดใหญ่ สังเกตง่าย ต่อใต้ LOT 1) -->
+        <!-- ปุ่มกดเปิด LOT 2 -->
         <button type="button" id="btnToggleLot2" onclick="toggleLot2()" class="w-full py-2.5 px-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold rounded-2xl transition-all active:scale-98 flex items-center justify-center space-x-2 text-sm mt-1">
           <span id="toggleIcon">➕</span>
           <span id="toggleText">เพิ่มการผลิต LOT 2 (ถ้ามี)</span>
@@ -239,8 +239,8 @@
         lotNumber: document.getElementById('lotNumber').value,
         target: Number(document.getElementById('target').value),
         workingHours: Number(document.getElementById('workingHours').value),
-        lotNumber2: hasLot2 ? document.getElementById('lotNumber2').value : '',
-        workingHours2: hasLot2 ? Number(document.getElementById('workingHours2').value) : 0,
+        lotNumber2: document.getElementById('lotNumber2').value.trim(),
+        workingHours2: Number(document.getElementById('workingHours2').value || 0),
         updatedBy: profileName
       };
 
