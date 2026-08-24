@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Chart.js DataLabels Plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
@@ -46,14 +45,14 @@
       </div>
     </div>
 
-    <!-- PAGE 1: Dashboard ภาพรวม & รายชั่วโมง -->
+    <!-- PAGE 1: Dashboard ภาพรวม (Default) -->
     <div id="tab1" class="space-y-6">
       
-      <!-- CARD 1: Chart Card สรุปยอดผลิตภาพรวม (Daily Summary Stacked Bar) -->
+      <!-- Chart Card (B - G) + Date Selector -->
       <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
         <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
           <div>
-            <h2 class="font-bold text-slate-700">สรุปยอดผลิตภาพรวม (Actual vs Gap)</h2>
+            <h2 class="font-bold text-slate-700">เปรียบเทียบ Target vs Actual (Line B - G)</h2>
             <p id="selectedDateText" class="text-xs text-indigo-600 font-semibold mt-0.5">กำลังโหลดข้อมูล...</p>
           </div>
           <!-- ช่องเลือกวันที่ย้อนหลัง -->
@@ -65,32 +64,6 @@
 
         <div class="h-64 relative">
           <canvas id="factoryChart"></canvas>
-        </div>
-      </div>
-
-      <!-- CARD 2: Chart Card ติดตามผลผลิตรายชั่วโมง (Hourly Output/hr Tracking) -->
-      <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
-          <div>
-            <h2 class="font-bold text-slate-700">⏱️ ติดตามผลการผลิตรายชั่วโมง (Hourly Output/hr)</h2>
-            <p id="targetPerHourText" class="text-xs text-indigo-600 font-semibold mt-0.5">เป้าหมายมาตรฐาน: -- ชิ้น / ชม.</p>
-          </div>
-          <!-- Dropdown เลือกลูกไลน์ -->
-          <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-            <span class="text-xs font-bold text-slate-500">🏭 เลือกไลน์:</span>
-            <select id="hourlyLineSelect" onchange="fetchHourlyData()" class="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer">
-              <option value="Line B">LINE B</option>
-              <option value="Line C">LINE C</option>
-              <option value="Line D">LINE D</option>
-              <option value="Line E">LINE E</option>
-              <option value="Line F">LINE F</option>
-              <option value="Line G">LINE G</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="h-64 relative">
-          <canvas id="hourlyChart"></canvas>
         </div>
       </div>
 
@@ -167,11 +140,10 @@
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxUK2_MCCjW8TrCTjNHJj3AxvJQ2-w1tjHX5Cw6guNxallTCyvUKWqTB2dPtvzZtYbD/exec";
     const LIFF_ID = "2011181755-bLeCO8Hs";
 
-    let dailyChartInstance = null;
-    let hourlyChartInstance = null;
+    let chartInstance = null;
 
-    // ช่วงเวลาเริ่ม 08:30 - 17:30 แบบยิงยาวไม่ตัดพัก + ช่อง OT
-    const HOURLY_SLOTS = [
+    // กำหนดรอบเวลาทำงาน 08.30 - 17.30 น. (ยิงยาวไม่ตัดพัก) + เผื่อ OT
+    const WORK_TIME_SLOTS = [
       "08:30", "09:30", "10:30", "11:30", "12:30", 
       "13:30", "14:30", "15:30", "16:30", "17:30", 
       "18:30", "19:30"
@@ -209,15 +181,11 @@
         
         if (data.lines && data.lines.length > 0) {
           renderCards(data.lines);
-          renderDailyChart(data.lines);
+          renderChart(data.lines);
           document.getElementById('selectedDateText').innerText = `แสดงข้อมูลประจำวันที่: ${data.date}`;
         } else {
           showEmptyState();
         }
-
-        // ดึงข้อมูลกราฟรายชั่วโมงร่วมด้วย
-        fetchHourlyData();
-
       } catch (err) {
         console.error("Fetch Error:", err);
         document.getElementById('selectedDateText').innerText = `เกิดข้อผิดพลาดในการดึงข้อมูลวันที่ ${selectedDate}`;
@@ -236,8 +204,7 @@
         <div class="col-span-full bg-white p-6 rounded-2xl text-center text-slate-400 font-bold">
           🚫 ไม่พบข้อมูลการผลิตของวันที่เลือก
         </div>`;
-      if (dailyChartInstance) dailyChartInstance.destroy();
-      if (hourlyChartInstance) hourlyChartInstance.destroy();
+      if (chartInstance) chartInstance.destroy();
     }
 
     function renderCards(lines) {
@@ -284,10 +251,10 @@
       });
     }
 
-    // 1. กราฟภาพรวมประจำวัน (Daily Summary Stacked Bar Chart)
-    function renderDailyChart(lines) {
+    // Stacked Bar Chart ( Actual เขียว + Gap แดง ซ้อนแท่งเดียวกัน )
+    function renderChart(lines) {
       const ctx = document.getElementById('factoryChart').getContext('2d');
-      if(dailyChartInstance) dailyChartInstance.destroy();
+      if(chartInstance) chartInstance.destroy();
 
       const labels = lines.map(d => d.line);
       const actualData = lines.map(d => d.actual);
@@ -296,7 +263,7 @@
         return gap > 0 ? gap : 0;
       });
 
-      dailyChartInstance = new Chart(ctx, {
+      chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
@@ -327,90 +294,9 @@
             datalabels: {
               color: '#FFFFFF',
               font: { weight: 'bold', size: 11 },
-              formatter: (value) => value > 0 ? value.toLocaleString() : '',
+              formatter: (val) => val > 0 ? val.toLocaleString() : '',
               anchor: 'center',
               align: 'center'
-            }
-          }
-        }
-      });
-    }
-
-    // 2. ดึงและวาดกราฟ Output/hr รายชั่วโมง
-    async function fetchHourlyData() {
-      const selectedDate = document.getElementById('datePicker').value;
-      const selectedLine = document.getElementById('hourlyLineSelect').value;
-
-      try {
-        const res = await fetch(`${GAS_API_URL}?hourlyLine=${encodeURIComponent(selectedLine)}&date=${selectedDate}`);
-        const result = await res.json();
-
-        const targetPerHour = result.targetPerHour || 0;
-        const hourlyMap = result.hourlyData || {};
-
-        document.getElementById('targetPerHourText').innerText = `เป้าหมายมาตรฐาน: ${targetPerHour.toLocaleString()} ชิ้น / ชม.`;
-
-        const actualValues = HOURLY_SLOTS.map(slot => {
-          const matchedKey = Object.keys(hourlyMap).find(k => k.includes(slot) || k.startsWith(slot));
-          return matchedKey ? hourlyMap[matchedKey] : (hourlyMap[slot] || 0);
-        });
-
-        const targetLineData = HOURLY_SLOTS.map(() => targetPerHour);
-
-        renderHourlyChart(HOURLY_SLOTS, actualValues, targetLineData, targetPerHour);
-
-      } catch (err) {
-        console.error("Hourly Fetch Error:", err);
-      }
-    }
-
-    function renderHourlyChart(labels, actualValues, targetLineData, targetPerHour) {
-      const ctx = document.getElementById('hourlyChart').getContext('2d');
-      if(hourlyChartInstance) hourlyChartInstance.destroy();
-
-      // สีแท่งกราฟ: ถ้าได้ถึงเป้าให้เป็นสีเขียว หากไม่ถึงเป้าให้เป็นสีส้ม/เหลือง
-      const backgroundColors = actualValues.map(val => (val >= targetPerHour && targetPerHour > 0) ? '#10B981' : '#F59E0B');
-
-      hourlyChartInstance = new Chart(ctx, {
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              type: 'line',
-              label: `Target / ชม. (${targetPerHour} ชิ้น)`,
-              data: targetLineData,
-              borderColor: '#6366F1',
-              borderWidth: 2,
-              borderDash: [5, 5],
-              pointRadius: 0,
-              fill: false,
-              datalabels: { display: false } // ไม่แสดงตัวเลขบนเส้น Target
-            },
-            {
-              type: 'bar',
-              label: 'Actual รายชั่วโมง',
-              data: actualValues,
-              backgroundColor: backgroundColors,
-              borderRadius: 4
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: { grid: { display: false } },
-            y: { beginAtZero: true, grid: { color: '#F1F5F9' } }
-          },
-          plugins: {
-            legend: { position: 'top' },
-            datalabels: {
-              color: '#FFFFFF',
-              font: { weight: 'bold', size: 10 },
-              formatter: (val) => val > 0 ? val.toLocaleString() : '',
-              anchor: 'end',
-              align: 'start',
-              offset: -18
             }
           }
         }
