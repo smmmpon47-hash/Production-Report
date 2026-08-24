@@ -278,17 +278,17 @@
       });
     }
 
-    // 2. กราฟ Hourly Tracking
+    // 2. กราฟ Hourly Tracking (ปรับช่วงเวลา 08:30 - 17:30 น. ยิงยาวไม่ตัดพัก)
     function updateHourlyChart() {
       const selectedLine = document.getElementById('lineSelect').value;
       const ctx = document.getElementById('hourlyChart').getContext('2d');
       if(hourlyChartInstance) hourlyChartInstance.destroy();
 
-      const timeSlots = ['08:00', '09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00'];
+      const timeSlots = ['08:30', '09:30', '10:30', '11:30', '12:30', '13:30', '14:30', '15:30', '16:30', '17:30'];
       const hourlyTarget = 60;
 
       const lineObj = globalLinesData.find(d => String(d.line).toUpperCase() === selectedLine) || {};
-      const hourlyActuals = lineObj.hourly_data || [55, 62, 58, 45, 60, 65, 50, 40]; 
+      const hourlyActuals = lineObj.hourly_data || [55, 62, 58, 45, 60, 65, 50, 40, 58, 60]; 
 
       hourlyChartInstance = new Chart(ctx, {
         type: 'bar',
@@ -298,7 +298,7 @@
             {
               type: 'line',
               label: 'Target / ชม. (60 ชิ้น)',
-              data: Array(8).fill(hourlyTarget),
+              data: Array(timeSlots.length).fill(hourlyTarget),
               borderColor: '#6366F1',
               borderWidth: 2,
               borderDash: [5, 5],
