@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เป้าผลิตประจำวัน</title>
+  <title>เป้ายอดการผลิต</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -20,17 +20,17 @@
     .card {
       background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(10px);
-      padding: 28px 22px;
+      padding: 26px 20px;
       border-radius: 20px;
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
       width: 100%;
       max-width: 420px;
       border: 1px solid rgba(255, 255, 255, 0.3);
     }
-    .header-box { text-align: center; margin-bottom: 22px; }
+    .header-box { text-align: center; margin-bottom: 20px; }
     .header-box h2 {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.55rem;
       font-weight: 700;
       background: linear-gradient(45deg, #06c755, #00b0ff);
       -webkit-background-clip: text;
@@ -38,9 +38,10 @@
     }
     
     .form-group { margin-bottom: 16px; }
-    label { display: block; font-weight: 600; margin-bottom: 6px; color: #2c3e50; font-size: 0.9rem; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: #2c3e50; font-size: 0.95rem; }
     
     select, input {
+      width: 100%;
       padding: 11px 13px;
       border: 2px solid #e2e8f0;
       border-radius: 12px;
@@ -55,11 +56,9 @@
       background: #fff;
       box-shadow: 0 0 0 4px rgba(6, 199, 85, 0.15);
     }
-    select { width: 100%; }
 
-    /* โครงสร้างเลข LOT + ปุ่มสแกน + ชม. ตามลายมือ */
-    .lot-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-    .input-lot { flex: 1; min-width: 0; }
+    .lot-row { display: flex; gap: 8px; align-items: center; }
+    .input-lot { flex: 1; }
     .btn-scan {
       background: #e2e8f0;
       border: 1.5px solid #cbd5e1;
@@ -73,7 +72,6 @@
       transition: all 0.2s;
     }
     .btn-scan:active { background: #cbd5e1; transform: scale(0.95); }
-    .input-hrs { width: 65px; text-align: center; }
 
     .btn-add {
       background: #e8f5e9;
@@ -84,11 +82,37 @@
       padding: 10px;
       border-radius: 12px;
       width: 100%;
-      font-size: 0.88rem;
+      font-size: 0.9rem;
+      margin-top: 5px;
       margin-bottom: 16px;
       transition: all 0.2s;
     }
     .btn-add:active { transform: scale(0.98); background: #d4edda; }
+
+    /* ปุ่มกดเลือกเวลาทำงาน (8 ชม. / 9 ชม. / 10 ชม.) */
+    .hours-btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-hour {
+      flex: 1;
+      padding: 11px 0;
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      font-weight: 600;
+      color: #475569;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .btn-hour.active {
+      background: #06c755;
+      border-color: #06c755;
+      color: white;
+      box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);
+    }
 
     .btn-group { display: flex; gap: 12px; margin-top: 24px; }
     .btn {
@@ -118,14 +142,15 @@
 
 <div class="card">
   <div class="header-box">
-    <h2>เป้าผลิตประจำวัน</h2>
+    <h2>เป้ายอดการผลิต</h2>
   </div>
 
   <form id="tgForm">
+    <!-- 1. LINE การผลิต -->
     <div class="form-group">
-      <label for="line">LINE</label>
+      <label for="line">LINE การผลิต</label>
       <select id="line" required onchange="loadLineData()">
-        <option value="">-- เลือก --</option>
+        <option value="">-- เลือก LINE --</option>
         <option value="Line B">Line B</option>
         <option value="Line C">Line C</option>
         <option value="Line D">Line D</option>
@@ -135,59 +160,53 @@
       </select>
     </div>
 
-    <!-- LOT 1 -->
+    <!-- 2. กรอก LOT 1 -->
     <div class="form-group">
-      <div style="display: flex; justify-content: space-between;">
-        <label>เลข LOT (1)</label>
-        <label style="width: 65px; text-align: center;">ชม.</label>
-      </div>
+      <label>กรอก LOT 1</label>
       <div class="lot-row">
-        <input type="text" id="lotNumber" class="input-lot" placeholder="พิมพ์/สแกน" required>
+        <input type="text" id="lotNumber" class="input-lot" placeholder="พิมพ์/สแกน LOT 1" required>
         <button type="button" class="btn-scan" onclick="scanQR('lotNumber')" title="สแกน Barcode/QR">📷</button>
-        <input type="number" id="workingHours" class="input-hrs" value="8" step="0.5" required>
-      </div>
-      <div class="lot-row" style="margin-top: 6px;">
-        <label style="margin: 0; white-space: nowrap; font-weight: 500; color: #64748b; font-size: 0.85rem;">เป้า (TG1)</label>
-        <input type="number" id="target" class="input-lot" placeholder="เป้าของ LOT นี้" required>
       </div>
     </div>
 
-    <!-- LOT 2 -->
+    <!-- LOT 2 (ซ่อนไว้ รอเพิ่ม) -->
     <div id="lot2Container" class="form-group hidden">
-      <div style="display: flex; justify-content: space-between;">
-        <label>เลข LOT (2)</label>
-        <label style="width: 65px; text-align: center;">ชม.</label>
-      </div>
+      <label>กรอก LOT 2</label>
       <div class="lot-row">
-        <input type="text" id="lotNumber2" class="input-lot" placeholder="เลข LOT 2">
+        <input type="text" id="lotNumber2" class="input-lot" placeholder="พิมพ์/สแกน LOT 2">
         <button type="button" class="btn-scan" onclick="scanQR('lotNumber2')" title="สแกน Barcode/QR">📷</button>
-        <input type="number" id="workingHours2" class="input-hrs" value="0" step="0.5">
-      </div>
-      <div class="lot-row" style="margin-top: 6px;">
-        <label style="margin: 0; white-space: nowrap; font-weight: 500; color: #64748b; font-size: 0.85rem;">เป้า (TG2)</label>
-        <input type="number" id="target2" class="input-lot" placeholder="เป้าของ LOT นี้">
       </div>
     </div>
 
-    <!-- LOT 3 -->
+    <!-- LOT 3 (ซ่อนไว้ รอเพิ่ม) -->
     <div id="lot3Container" class="form-group hidden">
-      <div style="display: flex; justify-content: space-between;">
-        <label>เลข LOT (3)</label>
-        <label style="width: 65px; text-align: center;">ชม.</label>
-      </div>
+      <label>กรอก LOT 3</label>
       <div class="lot-row">
-        <input type="text" id="lotNumber3" class="input-lot" placeholder="เลข LOT 3">
+        <input type="text" id="lotNumber3" class="input-lot" placeholder="พิมพ์/สแกน LOT 3">
         <button type="button" class="btn-scan" onclick="scanQR('lotNumber3')" title="สแกน Barcode/QR">📷</button>
-        <input type="number" id="workingHours3" class="input-hrs" value="0" step="0.5">
-      </div>
-      <div class="lot-row" style="margin-top: 6px;">
-        <label style="margin: 0; white-space: nowrap; font-weight: 500; color: #64748b; font-size: 0.85rem;">เป้า (TG3)</label>
-        <input type="number" id="target3" class="input-lot" placeholder="เป้าของ LOT นี้">
       </div>
     </div>
 
-    <button type="button" class="btn-add" id="btnAddLot" onclick="addLotField()">+ เพิ่ม LOT (ถ้ามี)</button>
+    <!-- 3. เป้า -->
+    <div class="form-group">
+      <label for="target">เป้า</label>
+      <input type="number" id="target" placeholder="กรอกเป้าหมายยอดผลิต" required min="1">
+    </div>
 
+    <!-- 4. ปุ่ม + เพิ่ม LOT -->
+    <button type="button" class="btn-add" id="btnAddLot" onclick="addLotField()">+ เพิ่ม LOT</button>
+
+    <!-- 5. เวลาการทำงาน -->
+    <div class="form-group">
+      <label>เวลาการทำงาน</label>
+      <div class="hours-btn-group">
+        <button type="button" class="btn-hour active" onclick="selectHour(8, this)">8 ชม.</button>
+        <button type="button" class="btn-hour" onclick="selectHour(9, this)">9 ชม.</button>
+        <button type="button" class="btn-hour" onclick="selectHour(10, this)">10 ชม.</button>
+      </div>
+    </div>
+
+    <!-- 6. CANCEL / SAVE -->
     <div class="btn-group">
       <button type="button" class="btn btn-cancel" onclick="liff.closeWindow()">CANCEL</button>
       <button type="submit" class="btn btn-submit">SAVE</button>
@@ -198,6 +217,7 @@
 <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwziSYLaDcymEHVXQr_qOP6RmIQDjixVPqWwhAQSOMXs_4zAA-gscpeuR7fJp7DY6yp/exec";
   let currentLotCount = 1;
+  let selectedHours = 8;
   let lineProfile = null;
 
   async function initLiff() {
@@ -215,10 +235,15 @@
       return;
     }
     liff.scanCodeV2().then(result => {
-      if (result.value) {
-        document.getElementById(targetInputId).value = result.value;
-      }
+      if (result.value) { document.getElementById(targetInputId).value = result.value; }
     }).catch(err => console.error("Scan Error:", err));
+  }
+
+  function selectHour(hrs, btnElement) {
+    selectedHours = hrs;
+    const buttons = document.querySelectorAll('.btn-hour');
+    buttons.forEach(b => b.classList.remove('active'));
+    btnElement.classList.add('active');
   }
 
   function addLotField() {
@@ -241,23 +266,23 @@
       const data = await res.json();
 
       if (data.reported) {
-        document.getElementById('target').value = data.target1 || '';
+        document.getElementById('target').value = data.target || '';
         document.getElementById('lotNumber').value = data.lotNumber || '';
-        document.getElementById('workingHours').value = data.workingHours || 8;
+        
+        const hrs = Number(data.totalWorkingHours) || 8;
+        const btnIndex = hrs === 9 ? 1 : (hrs === 10 ? 2 : 0);
+        const hourButtons = document.querySelectorAll('.btn-hour');
+        if (hourButtons[btnIndex]) selectHour(hrs, hourButtons[btnIndex]);
 
         if (data.lotNumber2) {
           document.getElementById('lot2Container').classList.remove('hidden');
           document.getElementById('lotNumber2').value = data.lotNumber2;
-          document.getElementById('workingHours2').value = data.workingHours2 || 0;
-          document.getElementById('target2').value = data.target2 || '';
           currentLotCount = 2;
         }
 
         if (data.lotNumber3) {
           document.getElementById('lot3Container').classList.remove('hidden');
           document.getElementById('lotNumber3').value = data.lotNumber3;
-          document.getElementById('workingHours3').value = data.workingHours3 || 0;
-          document.getElementById('target3').value = data.target3 || '';
           document.getElementById('btnAddLot').classList.add('hidden');
           currentLotCount = 3;
         }
@@ -273,25 +298,24 @@
       line: document.getElementById('line').value,
       target: document.getElementById('target').value,
       lotNumber: document.getElementById('lotNumber').value,
-      workingHours: document.getElementById('workingHours').value || 0,
+      workingHours: selectedHours,
       lotNumber2: document.getElementById('lotNumber2').value || "",
-      workingHours2: document.getElementById('workingHours2').value || 0,
-      target2: document.getElementById('target2').value || 0,
+      workingHours2: 0,
       lotNumber3: document.getElementById('lotNumber3').value || "",
-      workingHours3: document.getElementById('workingHours3').value || 0,
-      target3: document.getElementById('target3').value || 0,
+      workingHours3: 0,
       updatedBy: lineProfile ? lineProfile.displayName : "Unknown"
     };
 
     try {
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
       const result = await response.json();
 
       if (result.status === 'success') {
-        alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
+        alert("บันทึกเป้าหมายประจำวันเรียบร้อยแล้ว!");
         liff.closeWindow();
       } else {
         alert("เกิดข้อผิดพลาด: " + (result.error || "ไม่สามารถบันทึกได้"));
