@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ตั้งเป้าการผลิตประจำวัน (Form TG)</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
+    * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
     body {
       background-color: #1e3a3f;
       min-height: 100vh;
@@ -151,6 +151,205 @@
       box-shadow: none;
       cursor: not-allowed;
     }
+  
+
+    /* ===== MOBILE / LIFF READABILITY FIX ===== */
+    html, body{
+      max-width:100%;
+      overflow-x:hidden;
+    }
+
+    body{
+      padding:14px 10px;
+      font-size:16px;
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+      padding:20px 16px;
+      border-radius:20px;
+      overflow:hidden;
+    }
+
+    .header-title{
+      font-size:1.35rem;
+      line-height:1.25;
+      margin-bottom:16px;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .form-group{
+      min-width:0;
+      margin-bottom:15px;
+    }
+
+    label{
+      font-size:.95rem;
+      line-height:1.35;
+    }
+
+    select, input{
+      min-width:0;
+      width:100%;
+      font-size:1rem;
+      padding:11px 12px;
+    }
+
+    .lot-card{
+      padding:14px 13px;
+      border-radius:16px;
+      margin-bottom:15px;
+      overflow:hidden;
+    }
+
+    .lot-header{
+      gap:8px;
+      font-size:.95rem;
+      line-height:1.25;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+
+    .badge-rate{
+      font-size:.75rem;
+      padding:4px 8px;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+
+    .model-subtext{
+      font-size:.75rem;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
+    /* แถว 2 ช่องไม่ให้ล้นขอบ */
+    .row-2col{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:9px;
+      width:100%;
+    }
+
+    .row-2col .form-group{
+      min-width:0;
+      width:100%;
+      margin-bottom:8px;
+    }
+
+    .hours-btn-group{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      width:100%;
+    }
+
+    .btn-hour-chip{
+      min-width:0;
+      width:100%;
+      padding:11px 4px;
+      font-size:.95rem;
+      line-height:1.2;
+      white-space:nowrap;
+    }
+
+    .summary-box{
+      gap:10px;
+      padding:13px 14px;
+      border-radius:16px;
+      margin:16px 0;
+      min-width:0;
+    }
+
+    .summary-box > div:first-child{
+      min-width:0;
+    }
+
+    .summary-title{
+      font-size:.86rem;
+      line-height:1.3;
+    }
+
+    .summary-subtitle{
+      font-size:.70rem;
+      line-height:1.35;
+      margin-top:2px;
+    }
+
+    .summary-value{
+      font-size:1.28rem;
+      line-height:1.1;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+
+    .btn-submit{
+      font-size:1rem;
+      padding:13px 10px;
+      border-radius:14px;
+    }
+
+    @media (max-width:390px){
+      body{
+        padding:10px 6px;
+      }
+
+      .card{
+        padding:16px 12px;
+        border-radius:18px;
+      }
+
+      .header-title{
+        font-size:1.22rem;
+      }
+
+      .lot-card{
+        padding:12px 10px;
+      }
+
+      .lot-header{
+        font-size:.9rem;
+      }
+
+      .badge-rate{
+        font-size:.7rem;
+        padding:4px 7px;
+      }
+
+      .row-2col{
+        grid-template-columns:1fr;
+        gap:2px;
+      }
+
+      .hours-btn-group{
+        gap:6px;
+      }
+
+      .btn-hour-chip{
+        font-size:.86rem;
+        padding:10px 2px;
+      }
+
+      .summary-box{
+        padding:11px 10px;
+        gap:7px;
+      }
+
+      .summary-title{
+        font-size:.8rem;
+      }
+
+      .summary-subtitle{
+        font-size:.66rem;
+      }
+
+      .summary-value{
+        font-size:1.15rem;
+      }
+    }
+
   </style>
 </head>
 <body>
