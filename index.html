@@ -350,6 +350,191 @@
       }
     }
 
+  
+
+    /* =========================================================
+       FORM UX POLISH — MORE BREATHING ROOM + LARGER TYPE
+       ปรับเฉพาะหน้าตา ไม่แตะ logic เดิม
+       ========================================================= */
+    body {
+      padding: 28px 18px;
+      font-size: 17px;
+    }
+
+    .card {
+      max-width: 500px;
+      padding: 30px 28px;
+      border-radius: 24px;
+    }
+
+    .header-title {
+      font-size: 1.65rem;
+      line-height: 1.3;
+      margin-bottom: 22px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      font-size: 1.04rem;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    select, input {
+      min-height: 52px;
+      padding: 13px 15px;
+      font-size: 1.08rem;
+      border-radius: 14px;
+    }
+
+    .lot-card {
+      padding: 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .lot-header {
+      font-size: 1.08rem;
+      line-height: 1.35;
+      margin-bottom: 15px;
+    }
+
+    .badge-rate {
+      font-size: .90rem;
+      padding: 5px 11px;
+    }
+
+    .model-subtext {
+      font-size: .85rem;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+
+    /* ถ้าช่องชั่วโมง LOT 1 ถูกซ่อน ให้ช่องเป้าหมายกินเต็มแถว */
+    #lot1HoursContainer[style*="display: none"] + .form-group {
+      grid-column: 1 / -1;
+    }
+
+    .hours-btn-group {
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-hour-chip {
+      min-height: 50px;
+      padding: 12px 6px;
+      font-size: 1.06rem;
+      border-radius: 14px;
+    }
+
+    /* เว้นกรอบสรุปเป้าจากริมการ์ด ไม่ให้ดูอึดอัด */
+    .summary-box {
+      margin: 22px 6px 20px;
+      padding: 17px 22px;
+      border-radius: 18px;
+      gap: 16px;
+    }
+
+    .summary-title {
+      font-size: 1rem;
+      line-height: 1.35;
+      font-weight: 700;
+    }
+
+    .summary-subtitle {
+      font-size: .80rem;
+      line-height: 1.4;
+      margin-top: 2px;
+    }
+
+    .summary-value {
+      font-size: 1.65rem;
+      line-height: 1.1;
+    }
+
+    .btn-submit {
+      min-height: 56px;
+      padding: 15px 12px;
+      font-size: 1.16rem;
+      border-radius: 16px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 14px 9px;
+        font-size: 16.5px;
+      }
+
+      .card {
+        max-width: 460px;
+        padding: 22px 18px;
+        border-radius: 20px;
+      }
+
+      .header-title {
+        font-size: 1.48rem;
+        margin-bottom: 19px;
+      }
+
+      label { font-size: 1rem; }
+
+      select, input {
+        min-height: 50px;
+        font-size: 1.04rem;
+        padding: 12px 13px;
+      }
+
+      .lot-card {
+        padding: 16px 15px;
+        margin-bottom: 18px;
+      }
+
+      .lot-header { font-size: 1.02rem; }
+      .badge-rate { font-size: .82rem; }
+      .btn-hour-chip { font-size: 1rem; }
+
+      .summary-box {
+        margin: 19px 3px 18px;
+        padding: 15px 17px;
+        gap: 12px;
+      }
+
+      .summary-title { font-size: .96rem; }
+      .summary-subtitle { font-size: .76rem; }
+      .summary-value { font-size: 1.48rem; }
+      .btn-submit { font-size: 1.10rem; }
+    }
+
+    @media (max-width: 390px) {
+      body { padding: 10px 6px; }
+
+      .card {
+        padding: 18px 14px;
+        border-radius: 18px;
+      }
+
+      .header-title { font-size: 1.34rem; }
+      label { font-size: .98rem; }
+      .lot-card { padding: 14px 12px; }
+      .lot-header { font-size: .98rem; }
+      .badge-rate { font-size: .76rem; }
+      .btn-hour-chip { font-size: .94rem; }
+
+      .summary-box {
+        margin: 17px 2px 16px;
+        padding: 14px 14px;
+        gap: 10px;
+      }
+
+      .summary-title { font-size: .91rem; }
+      .summary-subtitle { font-size: .72rem; }
+      .summary-value { font-size: 1.32rem; }
+    }
+
   </style>
 </head>
 <body>
