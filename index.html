@@ -644,16 +644,12 @@
   initLiff();
 
   function selectTotalHours(hrs, evt) {
-    // กันมือถือ/LIFF เด้งกลับขึ้นบนตอนกดเลือกชั่วโมงหลังพิมพ์จำนวนคน
+    // จำค่าจำนวนคนไว้ก่อนเปลี่ยนชั่วโมง เพื่อไม่ให้ค่าที่กรอกไว้หาย
     if (evt) evt.preventDefault();
 
+    const manpowerInput = document.getElementById('manpower');
+    const manpowerBefore = manpowerInput ? manpowerInput.value : '';
     const beforeY = window.scrollY || window.pageYOffset || 0;
-    const active = document.activeElement;
-
-    // ปิดคีย์บอร์ด แต่จำตำแหน่งหน้าจอเดิมไว้
-    if (active && typeof active.blur === 'function') {
-      active.blur();
-    }
 
     document.getElementById('selectedTotalHours').value = hrs;
 
@@ -669,9 +665,16 @@
     updateLot1HoursDropdown(hrs);
     calculateRate();
 
-    // LIFF/มือถือบางเครื่องปรับ viewport หลังคีย์บอร์ดปิดช้ากว่า click
-    // เลยคืนตำแหน่งหลายจังหวะเพื่อไม่ให้หน้ากระโดดขึ้นด้านบน
-    const restore = () => window.scrollTo(0, beforeY);
+    // คืนค่าจำนวนคนเดิมหลังเลือกเวลา
+    if (manpowerInput) {
+      manpowerInput.value = manpowerBefore;
+    }
+
+    // กัน LIFF/มือถือขยับหน้าจอ และย้ำค่าจำนวนคนหลัง viewport เปลี่ยน
+    const restore = () => {
+      if (manpowerInput) manpowerInput.value = manpowerBefore;
+      window.scrollTo(0, beforeY);
+    };
     requestAnimationFrame(restore);
     setTimeout(restore, 60);
     setTimeout(restore, 180);
