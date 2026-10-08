@@ -4,8 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ตั้งเป้าการผลิตประจำวัน (Form TG)</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FAST LOAD: ไม่ให้ LIFF / Web Font ขวางการแสดงฟอร์ม -->
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com">
+  <link rel="preconnect" href="https://static.line-scdn.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script async src="https://static.line-scdn.net/liff/edge/2/sdk.js" onload="window.__liffSdkLoaded=true; if(window.startLiffInit_) window.startLiffInit_();"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
   <style>
     * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
     body {
@@ -626,6 +633,7 @@
   let masterLotMap = {};
   let userDisplayName = "Unknown";
   let initialTarget1 = 0;
+  let lineLoadController = null;
 
   async function initLiff() {
     try {
@@ -641,7 +649,17 @@
     }
   }
 
-  initLiff();
+  window.startLiffInit_ = function() {
+    if (window.__liffInitStarted) return;
+    if (typeof liff === "undefined" || !LIFF_ID) return;
+    window.__liffInitStarted = true;
+    void initLiff();
+  };
+
+  // ถ้า SDK มาแล้วให้เริ่มทันที; ถ้ายังมาไม่ถึง onload ด้านบนจะเรียกให้เอง
+  if (window.__liffSdkLoaded || typeof liff !== "undefined") {
+    window.startLiffInit_();
+  }
 
   function selectTotalHours(hrs, evt) {
     // จำค่าจำนวนคนไว้ก่อนเปลี่ยนชั่วโมง เพื่อไม่ให้ค่าที่กรอกไว้หาย
@@ -695,7 +713,14 @@
     if (!line) return;
 
     try {
-      const res = await fetch(`${SCRIPT_URL}?action=getTodayLine&line=${encodeURIComponent(line)}`);
+      // ถ้าผู้ใช้เปลี่ยน LINE เร็ว ให้ยกเลิก request เก่า ไม่ต้องรอ
+      if (lineLoadController) lineLoadController.abort();
+      lineLoadController = new AbortController();
+
+      const res = await fetch(
+        `${SCRIPT_URL}?action=getTodayLine&line=${encodeURIComponent(line)}`,
+        { signal: lineLoadController.signal }
+      );
       const data = await res.json();
       masterLotMap = data.masterMap || {};
 
@@ -713,6 +738,7 @@
         onLotInput(1);
       }
     } catch (err) {
+      if (err && err.name === "AbortError") return;
       console.error("Error loading line data:", err);
     }
   }
