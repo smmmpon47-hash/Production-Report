@@ -92,6 +92,29 @@
     }
     .row-2col .form-group { flex: 1; margin-bottom: 8px; }
 
+    .lot-info{
+      display:none;
+      margin-top:8px;
+      padding:12px 13px;
+      background:#ecfeff;
+      border:1px solid #a5f3fc;
+      border-radius:13px;
+    }
+    .lot-info.show{display:block}
+    .lot-info-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:3px 0;
+      font-size:.84rem;
+    }
+    .lot-info-row span:first-child{color:#64748b}
+    .lot-info-row strong{
+      color:#0f766e;
+      text-align:right;
+      overflow-wrap:anywhere;
+    }
+    .lot-status-error{color:#dc2626 !important}
     .model-subtext {
       font-size: 0.8rem;
       color: #0d9488;
@@ -581,6 +604,12 @@
         <label for="lot1No">เลข LOT Number</label>
         <input type="text" id="lot1No" placeholder="กรอกเลข LOT" required oninput="onLotInput(1)">
         <div class="model-subtext" id="modelSubtext1"></div>
+        <div id="lotInfo1" class="lot-info">
+          <div class="lot-info-row"><span>SMPL / รุ่น</span><strong id="lotSmpl1">-</strong></div>
+          <div class="lot-info-row"><span>Qty (PO)</span><strong id="lotQty1">-</strong></div>
+          <div class="lot-info-row" id="lotDeliveryRow1"><span>กำหนดส่ง</span><strong id="lotDelivery1">-</strong></div>
+          <div class="lot-info-row"><span>ผลิตสะสมแล้ว</span><strong id="lotCumulative1">-</strong></div>
+        </div>
       </div>
 
       <div class="row-2col">
@@ -750,6 +779,91 @@
       subtextElem.innerText = `(รุ่น: ${masterLotMap[lotVal]})`;
     } else {
       subtextElem.innerText = '';
+    }
+    scheduleLotLookup_(index);
+  }
+
+  /* ===== ข้อมูล LOT จาก Master_LOT (อ่านอย่างเดียว ผ่าน ?searchLot= ที่มีอยู่แล้วใน Backend) ===== */
+  const lotLookupCache = {};
+  const lotLookupTimers = {};
+  const lotLookupControllers = {};
+
+  function formatLotNumber_(v) {
+    const n = Number(v) || 0;
+    return n.toLocaleString('th-TH');
+  }
+
+  function hideLotInfo_(index) {
+    const box = document.getElementById(`lotInfo${index}`);
+    if (box) box.classList.remove('show');
+  }
+
+  function renderLotInfo_(index, lot, data) {
+    const subtextElem = document.getElementById(`modelSubtext${index}`);
+    const box = document.getElementById(`lotInfo${index}`);
+    if (!box || !subtextElem) return;
+
+    if (!data || data.error) {
+      hideLotInfo_(index);
+      subtextElem.classList.add('lot-status-error');
+      subtextElem.innerText = 'ไม่พบ LOT นี้ใน Master_LOT';
+      return;
+    }
+
+    subtextElem.classList.remove('lot-status-error');
+    subtextElem.innerText = '✓ พบข้อมูล LOT';
+    document.getElementById(`lotSmpl${index}`).innerText = data.model || '-';
+    document.getElementById(`lotQty${index}`).innerText =
+      Number(data.po_target) > 0 ? `${formatLotNumber_(data.po_target)} ตัว` : '-';
+    document.getElementById(`lotDelivery${index}`).innerText = data.delivery_date || '-';
+    document.getElementById(`lotDeliveryRow${index}`).style.display = data.delivery_date ? '' : 'none';
+    document.getElementById(`lotCumulative${index}`).innerText =
+      `${formatLotNumber_(data.cumulative_actual)} ตัว`;
+    box.classList.add('show');
+  }
+
+  function scheduleLotLookup_(index) {
+    clearTimeout(lotLookupTimers[index]);
+    const lot = document.getElementById(`lot${index}No`).value.trim().toUpperCase();
+    const subtextElem = document.getElementById(`modelSubtext${index}`);
+    if (subtextElem) subtextElem.classList.remove('lot-status-error');
+
+    if (!lot) { hideLotInfo_(index); return; }
+
+    if (lotLookupCache[lot]) {
+      renderLotInfo_(index, lot, lotLookupCache[lot]);
+      return;
+    }
+
+    hideLotInfo_(index);
+    lotLookupTimers[index] = setTimeout(() => lookupLotInfo_(index, lot), 450);
+  }
+
+  async function lookupLotInfo_(index, lot) {
+    if (lotLookupControllers[index]) lotLookupControllers[index].abort();
+    const controller = new AbortController();
+    lotLookupControllers[index] = controller;
+
+    const subtextElem = document.getElementById(`modelSubtext${index}`);
+    if (subtextElem && !masterLotMap[lot]) subtextElem.innerText = 'กำลังค้นหา LOT...';
+
+    try {
+      const res = await fetch(
+        `${SCRIPT_URL}?searchLot=${encodeURIComponent(lot)}&_=${Date.now()}`,
+        { signal: controller.signal, cache: 'no-store' }
+      );
+      const data = await res.json();
+
+      // ผู้ใช้พิมพ์ LOT อื่นไปแล้ว ไม่ต้องแสดงผลเก่า
+      const currentLot = document.getElementById(`lot${index}No`).value.trim().toUpperCase();
+      if (currentLot !== lot) return;
+
+      if (data && !data.error) lotLookupCache[lot] = data;
+      renderLotInfo_(index, lot, data);
+    } catch (err) {
+      if (err && err.name === 'AbortError') return;
+      console.error('LOT lookup error:', err);
+      if (subtextElem && !masterLotMap[lot]) subtextElem.innerText = '';
     }
   }
 
