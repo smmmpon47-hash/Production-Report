@@ -142,6 +142,7 @@
       text-align: center;
       transition: all 0.2s ease;
     }
+    .hours-btn-group.start-btn-group { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .start-time-note { font-size: .78rem; color: #64748b; margin-top: 6px; min-height: 1em; }
     .btn-hour-chip.active {
       background: #0d9488;
@@ -574,6 +575,17 @@
   <h2 class="header-title">🎯 ตั้งเป้าการผลิตประจำวัน</h2>
 
   <form id="tgForm">
+    <!-- เวลาเข้างาน (08.00 = มี OT เช้า) -->
+    <div class="form-group" id="startTimeSection">
+      <label>เวลาเข้างาน</label>
+      <div class="hours-btn-group start-btn-group">
+        <button type="button" class="btn-hour-chip btn-start-chip active" data-start="08:30" onclick="selectStartTime('08:30', event)">08.30</button>
+        <button type="button" class="btn-hour-chip btn-start-chip" data-start="08:00" onclick="selectStartTime('08:00', event)">08.00</button>
+      </div>
+      <input type="hidden" id="selectedStartTime" value="08:30">
+      <div class="start-time-note" id="startTimeNote"></div>
+    </div>
+
     <!-- เลือกลายการผลิต B - G -->
     <div class="form-group">
       <label for="lineSelect">LINE การผลิต</label>
@@ -638,16 +650,6 @@
       <input type="hidden" id="selectedTotalHours" value="9">
     </div>
 
-    <!-- เวลาเข้างาน (08.00 = มี OT เช้า) -->
-    <div class="form-group" id="startTimeSection">
-      <label>เวลาเข้างาน</label>
-      <div class="hours-btn-group">
-        <button type="button" class="btn-hour-chip btn-start-chip active" data-start="08:30" onclick="selectStartTime('08:30', event)">08.30</button>
-        <button type="button" class="btn-hour-chip btn-start-chip" data-start="08:00" onclick="selectStartTime('08:00', event)">08.00</button>
-      </div>
-      <input type="hidden" id="selectedStartTime" value="08:30">
-      <div class="start-time-note" id="startTimeNote"></div>
-    </div>
 
     <!-- สรุปเป้ารวม -->
     <div class="summary-box">
@@ -719,7 +721,7 @@
       text = `พักเที่ยง ${slotClock_(lineBreakStart)}–${end}`;
     }
     if (start === '08:00') {
-      text += (text ? ' • ' : '') + 'เข้า 08.00 ช่วงเช้าเลื่อนขึ้น 30 นาที';
+      text += (text ? ' • ' : '') + 'เข้า 08.00 เลิกงานปกติ 17.00';
     }
     note.textContent = text;
   }
