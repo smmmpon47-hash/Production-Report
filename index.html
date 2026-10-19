@@ -142,7 +142,7 @@
       text-align: center;
       transition: all 0.2s ease;
     }
-    .hours-btn-group.start-btn-group { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .hours-btn-group.start-btn-group { grid-template-columns: repeat(var(--start-cols, 2), minmax(0,1fr)); }
     .start-time-note { font-size: .78rem; color: #64748b; margin-top: 6px; min-height: 1em; }
     .btn-hour-chip.active {
       background: #0d9488;
@@ -578,7 +578,7 @@
     <!-- เวลาเข้างาน (08.00 = มี OT เช้า) -->
     <div class="form-group" id="startTimeSection">
       <label>เวลาเข้างาน</label>
-      <div class="hours-btn-group start-btn-group">
+      <div class="hours-btn-group start-btn-group" id="startChipGroup">
         <button type="button" class="btn-hour-chip btn-start-chip" data-start="08:00" onclick="selectStartTime('08:00', event)">08.00</button>
         <button type="button" class="btn-hour-chip btn-start-chip active" data-start="08:30" onclick="selectStartTime('08:30', event)">08.30</button>
       </div>
@@ -709,6 +709,22 @@
 
   function slotClock_(hhmm) { return String(hhmm || '').replace(':', '.'); }
 
+  // ปุ่มเวลาเข้างาน: ตัวเลือกมาจากหน้าจัดการ (Apps Script ส่งมาตอนเลือก LINE) · ไม่มี = 08.00 / 08.30
+  let startTimeOptions = ['08:00', '08:30'];
+  function renderStartChips_(options, keepValue) {
+    const list = (Array.isArray(options) && options.length ? options : ['08:00', '08:30']).slice();
+    if (keepValue && list.indexOf(keepValue) < 0) list.push(keepValue);
+    const toMin = v => { const p = String(v).split(':').map(Number); return p[0] * 60 + p[1]; };
+    list.sort((a, b) => toMin(a) - toMin(b));
+    startTimeOptions = list;
+    const group = document.getElementById('startChipGroup');
+    if (!group) return;
+    group.style.setProperty('--start-cols', String(Math.min(4, list.length)));
+    group.innerHTML = list.map(v =>
+      `<button type="button" class="btn-hour-chip btn-start-chip" data-start="${v}" onclick="selectStartTime('${v}', event)">${slotClock_(v)}</button>`
+    ).join('');
+  }
+
   function renderStartTimeNote_() {
     const note = document.getElementById('startTimeNote');
     if (!note) return;
@@ -720,15 +736,18 @@
       const end = String(Math.floor(endMin / 60)).padStart(2, '0') + '.' + String(endMin % 60).padStart(2, '0');
       text = `พักเที่ยง ${slotClock_(lineBreakStart)}–${end}`;
     }
-    if (start === '08:00') {
-      text += (text ? ' • ' : '') + 'เข้า 08.00 เลิกงานปกติ 17.00';
+    if (start && start !== '08:30') {
+      const p = start.split(':').map(Number);
+      const endMin = p[0] * 60 + p[1] + 540;
+      const end = String(Math.floor(endMin / 60)).padStart(2, '0') + '.' + String(endMin % 60).padStart(2, '0');
+      text += (text ? ' • ' : '') + `เข้า ${slotClock_(start)} เลิกงานปกติ ${end}`;
     }
     note.textContent = text;
   }
 
   function selectStartTime(start, evt) {
     if (evt) evt.preventDefault();
-    const value = start === '08:00' ? '08:00' : '08:30';
+    const value = startTimeOptions.indexOf(start) >= 0 ? start : '08:30';
     document.getElementById('selectedStartTime').value = value;
     document.querySelectorAll('.btn-start-chip').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.start === value);
@@ -801,6 +820,7 @@
 
       const slotConfig = data.slotConfig || (data.slotGrid ? { startTime: data.slotGrid.startTime, breakStart: data.slotGrid.breakStart } : null);
       lineBreakStart = slotConfig ? (slotConfig.breakStart || '') : '';
+      renderStartChips_(data.startTimeOptions, data.lotNumber && slotConfig ? slotConfig.startTime : '');
       // ตั้งเป้าแล้ววันนี้ = แสดงเวลาเข้างานที่บันทึกไว้ / ยังไม่ตั้ง = 08.30
       selectStartTime(data.lotNumber && slotConfig ? slotConfig.startTime : '08:30');
 
