@@ -820,9 +820,12 @@
 
       const slotConfig = data.slotConfig || (data.slotGrid ? { startTime: data.slotGrid.startTime, breakStart: data.slotGrid.breakStart } : null);
       lineBreakStart = slotConfig ? (slotConfig.breakStart || '') : '';
-      renderStartChips_(data.startTimeOptions, data.lotNumber && slotConfig ? slotConfig.startTime : '');
+      // ตั้งเป้าแล้ววันนี้ = ใช้เวลาที่บันทึกไว้ · ยังไม่ตั้ง = คงปุ่มที่หน้างานกดไว้ก่อนเลือก LINE (ไม่รีเซ็ตเป็น 08.30)
+      const chosenStart = document.getElementById('selectedStartTime').value || '08:30';
+      const savedStart = data.lotNumber && slotConfig ? slotConfig.startTime : '';
+      renderStartChips_(data.startTimeOptions, savedStart);
       // ตั้งเป้าแล้ววันนี้ = แสดงเวลาเข้างานที่บันทึกไว้ / ยังไม่ตั้ง = 08.30
-      selectStartTime(data.lotNumber && slotConfig ? slotConfig.startTime : '08:30');
+      selectStartTime(savedStart || chosenStart);
 
       document.getElementById('manpower').value =
         (data.manpower === null || data.manpower === undefined) ? '' : data.manpower;
