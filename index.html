@@ -603,7 +603,7 @@
     <!-- จำนวนคนตอนเช้า -->
     <div class="form-group">
       <label for="manpower">จำนวนคนในไลน์ (คน)</label>
-      <input type="number" id="manpower" min="0" step="any" inputmode="decimal" placeholder="เช่น 30 หรือ 30.5" required>
+      <input type="number" id="manpower" min="0" step="any" inputmode="decimal" placeholder="เช่น 30 หรือ 30.5" required oninput="calculateRate()">
     </div>
 
     <!-- LOT 1 Card -->
@@ -625,6 +625,21 @@
         </div>
       </div>
 
+      <!-- วิธีคิดเป้า: SAM (ระบบคิดให้) หรือกรอกเป้าเอง -->
+      <div class="form-group">
+        <label>วิธีคิดเป้า</label>
+        <div class="hours-btn-group start-btn-group" style="--start-cols:2">
+          <button type="button" class="btn-hour-chip btn-start-chip btn-mode-chip active" data-mode="sam" onclick="selectTargetMode('sam', event)">คิดจาก SAM</button>
+          <button type="button" class="btn-hour-chip btn-start-chip btn-mode-chip" data-mode="manual" onclick="selectTargetMode('manual', event)">กรอกเป้าเอง</button>
+        </div>
+        <input type="hidden" id="targetMode" value="sam">
+      </div>
+      <div class="form-group" id="lot1SamGroup">
+        <label for="lot1Sam">ค่า SAM (นาที/ตัว)</label>
+        <input type="number" id="lot1Sam" min="0" step="0.01" inputmode="decimal" placeholder="เช่น 20.11" oninput="calculateRate()">
+        <div class="start-time-note" id="lot1SamNote"></div>
+      </div>
+
       <div class="row-2col">
         <div class="form-group" id="lot1HoursContainer" style="display: none;">
           <label for="lot1HoursSelect">ชั่วโมงผลิตจริง</label>
@@ -633,7 +648,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label for="lot1Target">เป้าหมาย (ชิ้น)</label>
+          <label for="lot1Target" id="lot1TargetLabel">เป้าหมาย (ชิ้น)</label>
           <input type="number" id="lot1Target" min="0" placeholder="0" required oninput="calculateRate()">
         </div>
       </div>
@@ -749,7 +764,7 @@
     if (evt) evt.preventDefault();
     const value = startTimeOptions.indexOf(start) >= 0 ? start : '08:30';
     document.getElementById('selectedStartTime').value = value;
-    document.querySelectorAll('.btn-start-chip').forEach(btn => {
+    document.querySelectorAll('.btn-start-chip:not(.btn-mode-chip)').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.start === value);
     });
     renderStartTimeNote_();
@@ -829,6 +844,11 @@
 
       document.getElementById('manpower').value =
         (data.manpower === null || data.manpower === undefined) ? '' : data.manpower;
+
+      // วิธีคิดเป้า: มี SAM ของ LOT1 วันนี้ = โหมด SAM · ตั้งเป้าแล้วแบบกรอกเอง = โหมดกรอกเอง · ยังไม่ตั้ง = SAM
+      const sam1 = ((data.sams || {})[1] || {}).sam;
+      document.getElementById('lot1Sam').value = sam1 || '';
+      selectTargetMode(data.lotNumber && !sam1 ? 'manual' : 'sam');
 
       if (data.lotNumber) {
         document.getElementById('lot1No').value = data.lotNumber;
@@ -957,8 +977,40 @@
     }
   }
 
+  // เป้าจาก SAM = ชั่วโมงทำงานรวม × 60 × คน ÷ SAM (สูตรเดียวกับ Apps Script)
+  function samToTg_(sam, totalHours, manpower) {
+    const s = Number(sam), h = Number(totalHours), m = Number(manpower);
+    if (!(s > 0) || !(h > 0) || !(m > 0)) return 0;
+    return Math.round(h * 60 * m / s);
+  }
+
+  function selectTargetMode(mode, evt) {
+    if (evt) evt.preventDefault();
+    const m = mode === 'manual' ? 'manual' : 'sam';
+    document.getElementById('targetMode').value = m;
+    document.querySelectorAll('.btn-mode-chip').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+    document.getElementById('lot1SamGroup').style.display = m === 'sam' ? '' : 'none';
+    const t = document.getElementById('lot1Target');
+    t.readOnly = m === 'sam';
+    t.style.backgroundColor = m === 'sam' ? '#f1f5f9' : '';
+    document.getElementById('lot1TargetLabel').innerText = m === 'sam' ? 'เป้าหมาย (ระบบคิดจาก SAM)' : 'เป้าหมาย (ชิ้น)';
+    if (m === 'manual' && t.dataset.fromSam === '1') { t.value = ''; t.dataset.fromSam = ''; }
+    calculateRate();
+  }
+
   function calculateRate() {
     const totalHrs = Number(document.getElementById('selectedTotalHours').value) || 9;
+    if (document.getElementById('targetMode').value === 'sam') {
+      const sam = Number(document.getElementById('lot1Sam').value) || 0;
+      const mp = Number(document.getElementById('manpower').value) || 0;
+      const tg = samToTg_(sam, totalHrs, mp);
+      const t = document.getElementById('lot1Target');
+      t.value = tg > 0 ? tg : '';
+      t.dataset.fromSam = '1';
+      document.getElementById('lot1SamNote').textContent = !sam ? ''
+        : (!mp ? 'กรอกจำนวนคนก่อน ระบบถึงจะคิดเป้าให้ได้'
+          : `${totalHrs} ชม. × 60 × ${mp} คน ÷ ${sam} = ${tg.toLocaleString()} ชิ้น`);
+    }
     const t1 = Number(document.getElementById('lot1Target').value) || 0;
     
     const rate1 = totalHrs > 0 ? Math.round(t1 / totalHrs) : 0;
@@ -1006,13 +1058,17 @@
 
   // เรียกใช้เริ่มต้นสำหรับ 9 ชม.
   updateLot1HoursDropdown(9);
+  selectTargetMode('sam');
 
   document.getElementById('tgForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const lineVal = document.getElementById('lineSelect').value;
     const lot1No = cleanLotText_(document.getElementById('lot1No').value);
+    calculateRate();
     const lot1Target = Number(document.getElementById('lot1Target').value) || 0;
+    const samMode = document.getElementById('targetMode').value === 'sam';
+    const sam1 = Number(document.getElementById('lot1Sam').value) || 0;
     const manpowerRaw = document.getElementById('manpower').value.trim();
     const manpower = Number(manpowerRaw);
     const totalHrs = Number(document.getElementById('selectedTotalHours').value) || 9;
@@ -1020,6 +1076,14 @@
 
     if (!lineVal || !lot1No || manpowerRaw === '') {
       alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+      return;
+    }
+    if (samMode && !(sam1 > 0)) {
+      alert("กรุณากรอกค่า SAM (หรือเลือก 'กรอกเป้าเอง')");
+      return;
+    }
+    if (!(lot1Target > 0)) {
+      alert("เป้าหมายต้องมากกว่า 0");
       return;
     }
 
@@ -1041,6 +1105,7 @@
       line: lineVal,
       lotNumber: lot1No,
       target: lot1Target,
+      sam1: samMode ? Math.round(sam1 * 100) / 100 : '',
       manpower: manpower,
       workingHours: totalHrs,
       startTime: document.getElementById('selectedStartTime').value || '08:30',
