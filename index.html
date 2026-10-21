@@ -142,6 +142,7 @@
       text-align: center;
       transition: all 0.2s ease;
     }
+    .mode-link { display:inline-block; margin-top:6px; font-size:.78rem; color:#64748b; text-decoration:underline; }
     .hours-btn-group.start-btn-group { grid-template-columns: repeat(var(--start-cols, 2), minmax(0,1fr)); }
     .start-time-note { font-size: .78rem; color: #64748b; margin-top: 6px; min-height: 1em; }
     .btn-hour-chip.active {
@@ -625,15 +626,8 @@
         </div>
       </div>
 
-      <!-- วิธีคิดเป้า: SAM (ระบบคิดให้) หรือกรอกเป้าเอง -->
-      <div class="form-group">
-        <label>วิธีคิดเป้า</label>
-        <div class="hours-btn-group start-btn-group" style="--start-cols:2">
-          <button type="button" class="btn-hour-chip btn-start-chip btn-mode-chip active" data-mode="sam" onclick="selectTargetMode('sam', event)">คิดจาก SAM</button>
-          <button type="button" class="btn-hour-chip btn-start-chip btn-mode-chip" data-mode="manual" onclick="selectTargetMode('manual', event)">กรอกเป้าเอง</button>
-        </div>
-        <input type="hidden" id="targetMode" value="sam">
-      </div>
+      <!-- ช่องหลัก = SAM (ระบบคิดเป้าให้) · กรอกเป้าเองเป็นลิงก์สำรอง -->
+      <input type="hidden" id="targetMode" value="sam">
       <div class="form-group" id="lot1SamGroup">
         <label for="lot1Sam">ค่า SAM (นาที/ตัว)</label>
         <input type="number" id="lot1Sam" min="0" step="0.01" inputmode="decimal" placeholder="เช่น 20.11" oninput="calculateRate()">
@@ -650,6 +644,7 @@
         <div class="form-group">
           <label for="lot1Target" id="lot1TargetLabel">เป้าหมาย (ชิ้น)</label>
           <input type="number" id="lot1Target" min="0" placeholder="0" required oninput="calculateRate()">
+          <a href="#" id="targetModeLink" class="mode-link" onclick="toggleTargetMode(event)">ไม่มีค่า SAM? กรอกเป้าเอง</a>
         </div>
       </div>
     </div>
@@ -764,7 +759,7 @@
     if (evt) evt.preventDefault();
     const value = startTimeOptions.indexOf(start) >= 0 ? start : '08:30';
     document.getElementById('selectedStartTime').value = value;
-    document.querySelectorAll('.btn-start-chip:not(.btn-mode-chip)').forEach(btn => {
+    document.querySelectorAll('.btn-start-chip').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.start === value);
     });
     renderStartTimeNote_();
@@ -990,11 +985,17 @@
     return Math.round(paid * m / s);
   }
 
+  function toggleTargetMode(evt) {
+    if (evt) evt.preventDefault();
+    selectTargetMode(document.getElementById('targetMode').value === 'sam' ? 'manual' : 'sam');
+  }
+
   function selectTargetMode(mode, evt) {
     if (evt) evt.preventDefault();
     const m = mode === 'manual' ? 'manual' : 'sam';
     document.getElementById('targetMode').value = m;
-    document.querySelectorAll('.btn-mode-chip').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+    const link = document.getElementById('targetModeLink');
+    if (link) link.textContent = m === 'sam' ? 'ไม่มีค่า SAM? กรอกเป้าเอง' : '← กลับไปคิดเป้าจาก SAM';
     document.getElementById('lot1SamGroup').style.display = m === 'sam' ? '' : 'none';
     const t = document.getElementById('lot1Target');
     t.readOnly = m === 'sam';
