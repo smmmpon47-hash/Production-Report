@@ -143,6 +143,7 @@
       transition: all 0.2s ease;
     }
     .mode-link { display:inline-block; margin-top:6px; font-size:.78rem; color:#64748b; text-decoration:underline; }
+    .hours-btn-group.total-hours-group { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); }
     .hours-btn-group.start-btn-group { grid-template-columns: repeat(var(--start-cols, 2), minmax(0,1fr)); }
     .start-time-note { font-size: .78rem; color: #64748b; margin-top: 6px; min-height: 1em; }
     .btn-hour-chip.active {
@@ -652,10 +653,11 @@
     <!-- ปุ่มเลือก เวลาทำงานรวม -->
     <div class="form-group" id="workingHoursSection">
       <label>เวลาทำงานรวม</label>
-      <div class="hours-btn-group">
-        <button type="button" class="btn-hour-chip" onclick="selectTotalHours(8, event)">8 ชม.</button>
-        <button type="button" class="btn-hour-chip active" onclick="selectTotalHours(9, event)">9 ชม.</button>
-        <button type="button" class="btn-hour-chip" onclick="selectTotalHours(10, event)">10 ชม.</button>
+      <div class="hours-btn-group total-hours-group">
+        <button type="button" class="btn-hour-chip" data-hours="8" onclick="selectTotalHours(8, event)">8 ชม.</button>
+        <button type="button" class="btn-hour-chip active" data-hours="9" onclick="selectTotalHours(9, event)">9 ชม.</button>
+        <button type="button" class="btn-hour-chip" data-hours="10" onclick="selectTotalHours(10, event)">10 ชม.</button>
+        <button type="button" class="btn-hour-chip" data-hours="11" onclick="selectTotalHours(11, event)">11 ชม.</button>
       </div>
       <input type="hidden" id="selectedTotalHours" value="9">
     </div>
@@ -777,7 +779,7 @@
 
     const buttons = document.querySelectorAll('.btn-hour-chip:not(.btn-start-chip)');
     buttons.forEach(btn => {
-      if (btn.innerText.includes(hrs)) {
+      if (Number(btn.dataset.hours) === Number(hrs)) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
@@ -973,7 +975,7 @@
   }
 
   // เป้าจาก SAM = นาทีค่าแรง × คน ÷ SAM (8 ชม. = 450 · 9 = 550 · 10 = 600)
-  const SAM_PAID_MINUTES = { 8: 450, 9: 550, 10: 600 }; // นาทีค่าแรง (สูตรเดียวกับ Apps Script)
+  const SAM_PAID_MINUTES = { 8: 450, 9: 550, 10: 600, 11: 650 }; // นาทีค่าแรง (สูตรเดียวกับ Apps Script)
   function samPaidMinutes_(hours) {
     const h = Math.floor(Number(hours) || 0);
     if (SAM_PAID_MINUTES[h]) return SAM_PAID_MINUTES[h];
